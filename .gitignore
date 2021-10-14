@@ -1,0 +1,9 @@
+/auto
+*.aux
+*.pdf
+*.lo*
+*.b*
+*.toc
+*.out
+*.xml
+*.gz
