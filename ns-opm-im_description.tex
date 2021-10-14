@@ -89,22 +89,21 @@ segments thermal figure errors ...
 \label{sec:models}
 
 \subsection{Finite element model}
-
-The finite element model of the telescope\cite{ss2fem_Christoph2020} includes
-the mount\cite{mount_pdr_iv} (pointing at a 60 degree elevation angle), M1 segments, M2
-segments and the telescope pier.
-The FEM is modeled as a set of second order ordinary differential
-equations (ODE) relating nodal displacements, velocities and accelerations to
-forces on the telescope.
-The ODEs can be rewritten as a function of the eigen modes $\vec q$ of the telescope
-FEM, the ODE of a given eigen mode $q_i$ is written:
+The finite element model of the telescope\cite{ss2fem_Christoph2020} is a single mesh that includes all relevant components of the telescope from the ground up, but excludes the enclosure and nearby buildings and structures. 
+The level of fidelity with which the components of the telescope are modeled varies greatly. 
+Currently the pier, mount, M1 and M2 are modeled with a relatively high level of detail, but some of the other payloads are represented in a simple fashion that accounts for little more than their mass properties and mounting location. 
+The mesh can be configured to represent different pointing angles.
+Since the FEM does not account for geometric or material non-linearities, it is essentially a set of second order ordinary differential equations (ODE) relating nodal displacements, velocities and accelerations to
+applied forces.
+The ODEs can be rewritten in terms of the eigenmodes $\vec q$, which allows to drastically reduce the degrees of freedom and provides a representation that is suitable for frequency and especially time domain simulation.
+The ODE of a given eigenmode $q_i$ is written as:
 \begin{equation}
   \label{eq:1}
   \ddot q_i + 2\omega_i\zeta\dot q_i + \omega_i^2 q_i = \vec b_i\cdot \vec u,
 \end{equation}
-where $\omega_i$ is the eigen frequency, $\zeta$ the damping coefficient, $\vec b_i$
+where $\omega_i$ is the eigenfrequency, $\zeta$ the damping coefficient, $\vec b_i$
 the nodal to modal forces projection vector and $\vec u$ the vector of nodal forces.
-The corresponding telescope nodal displacement $\vec y$ are derived from
+The corresponding telescope nodal displacements $\vec y$ are derived from
 \begin{equation}
   \label{eq:2}
   \vec y = \sum_i q_i\vec c_i  = \sum_i \vec y_i,
@@ -168,20 +167,20 @@ Both $A_{i,d}$\footnote{\url{https://www.wolframalpha.com/input/?i=inverse+\%7B\
 with $z_i=\omega_i^2\sqrt{\zeta^2-1}$, $\alpha_-=z_i-\omega_i\zeta$,
 $\alpha_+=z_i+\omega_i\zeta$, $\beta_-=\exp(\tau\alpha_-)$,
 $\beta_+=\exp(-\tau\alpha_+)$.
-Thanks to the orthogonality of the eigen modes $q_i$, the discrete state space
-models given by Eq.~(\ref{eq:4a}) and Eq.~(\ref{eq:4b}) are computed in parallel  for all the modes of
+Thanks to the orthogonality of the eigenmodes $q_i$, the discrete state space
+models given by Eq.~(\ref{eq:4a}) and Eq.~(\ref{eq:4b}) are computed in parallel for all the modes of
 the system.
 
-The eigen modes of the telescope FEM\cite{} have been computed for all the modes
-up to a eigen frequency of 2,000Hz leading to a total of 13,381 modes(Fig.~\ref{fig:fem-eig-val}).
+The eigenmodes of the telescope FEM\cite{} have been computed for all the modes
+up to a eigenfrequency of 2,000Hz leading to a total of 13,381 modes(Fig.~\ref{fig:fem-eig-val}).
 \begin{figure}
   \centering
   \includegraphics[width=0.7\linewidth]{modal_state_space_model_2ndOrder_2000Hz.png}
-  \caption{Telescope FEM eigen frequencies as a function of the eigen modes
+  \caption{Telescope FEM eigenfrequencies as a function of the eigenmodes
     number.}
   \label{fig:fem-eig-val}
 \end{figure}
-To reduce the computing burden, the number of modes of the system is reduced by
+To reduce the computational burden, the number of modes of the system is reduced by
 thresholding the Hankel singular values of the system.
 The state space model is set with a modal damping coefficient $\zeta=2$\% and a
 sampling rate $\tau=1$ms. 
@@ -226,8 +225,8 @@ It has been configured for 3 elevation angles: 90, 60 and 30 degrees.
 
 To add for each elevation angle:
 \begin{itemize}
-\item table of 1st few eigen frequencies
-\item plot of modes vs. eigen frequencies
+\item table of 1st few eigenfrequencies
+\item plot of modes vs. eigenfrequencies
 \item plot of modes vs. Hankel  singular values
 \item plot of some transfer functions before and after model reduction
 \end{itemize}
@@ -243,7 +242,7 @@ ODC\cite{}
 
 \paragraph{Gravity support forces}
 
-\paragraph{M1 eigen modes}
+\paragraph{M1 eigenmodes}
 
 The telescope FEM in its state space representation provides as outputs the
 displacement of nodes on the surface of M1 segments as well as the 6 rigid body
@@ -280,13 +279,13 @@ deformation of segment $i$ is finally written as
 \end{equation}
 
 To reduce the amount of data that is given to the optical model, the surface
-$S_i$ is projected on the M1 segment eigen modes $B_i$ like so $b_i = B_i^TS_i$
+$S_i$ is projected on the M1 segment eigenmodes $B_i$ like so $b_i = B_i^TS_i$
 where $B_i$ is derived from the singular values decomposition of the sensitivity
 matrix $F_i$ that relates actuator cylinder forces to surface deformations, $F_i
 = U_i \Lambda_i V_i^T$.
 The 6 lowest eigen values correspond to the 6 rigid body motions that have been
 filtered out of each influence function in $F_i$ and $B_i$ is given by $U_i$
-with the 6 eigen modes corresponding to the 6 lowest eigen values removed.
+with the 6 eigenmodes corresponding to the 6 lowest eigen values removed.
 
 Using $B_i$ as the modal basis for M1 segments in the optical model, we can compute
 a calibration matrix $D$ that relates the mode coefficients $b$ to the WFS
@@ -332,7 +331,7 @@ V_\alpha$ are written
   G_\beta \bar V_\alpha = G_\beta  V_\alpha - G_\beta V_\beta V_\beta^T  V_\alpha = U_\beta\Lambda_\beta V_\beta^T V_\alpha - U_\beta\Lambda_\beta V_\beta^T V_\alpha =0,
 \end{equation}
 using the orthonormal property of the eigen vectors, $V^TV=I$.
-The final eigen modes are given by the left eigen vectors $U$ of the newly
+The final eigenmodes are given by the left eigen vectors $U$ of the newly
 formed gain matrix $\bar G$,
 \begin{equation}
   \label{eq:13}
