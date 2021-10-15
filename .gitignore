@@ -1,8 +1,7 @@
 /auto
 *.aux
-*.pdf
+*-eps-converted-to.pdf
 *.lo*
-*.b*
 *.toc
 *.out
 *.xml
