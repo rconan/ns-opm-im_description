@@ -2,7 +2,11 @@
 *.aux
 *-eps-converted-to.pdf
 *.lo*
+*.bbl
+*.bcf
+*.blg
 *.toc
 *.out
 *.xml
 *.gz
+ns-opm-im_description.pdf

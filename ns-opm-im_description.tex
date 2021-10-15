@@ -12,7 +12,7 @@
 
 \title{Natural Seeing Observatory Performance Mode Integrated Model Description}
 %\subtitle{}
-\author{R. Conan, R. Romano, C. Dribusch, H, Fitzpatrick}
+\author{R. Conan, R. Romano, C. Dribusch, H. Fitzpatrick}
 \date{\today}
 
 \begin{document}
@@ -382,13 +382,13 @@ Fig.~\ref{fig:NS_end2end} illustrates the integrated modeling simulation setup f
     \label{fig:NS_end2end}
 \end{figure}
 %
- The telescope structural dynamics~\cite{ss2fem_Christoph2020}, the optical propagation block (DOS)~\cite{Conan2017_DOS}, and the control model compose the end--to--end simulation framework. One can split the control model into two groups: the optical feedback and the local device/mechanical subsystem loops. The active optics and the segment tip--tilt (Fast TT) controller belong to the first group, relying on feedback from wavefront sensor measurements. The second has the lower--level control systems, namely the mount, M1 (outer force and position control), and M2 (Positioner and inner FSM loop controllers). In the following, we provide a brief description of each subsystem control model. For a detailed presentation, one is referred to the indicated references.
+ The telescope structural dynamics~\cite{ss2fem_Christoph2020}, the optical propagation block (DOS)~\cite{Conan2017_DOS}, and the control model compose the end--to--end simulation framework. One can split the control model into two groups: the wavefront control (WFC) and the local device/mechanical subsystem loops. The active optics and the segment tip--tilt (Fast TT) controller belong to the first group, relying on feedback from wavefront sensor measurements. The second has the lower--level control systems, namely the mount, M1 (outer force and position control), and M2 (Positioner and inner FSM loop controllers). In the following, we provide a brief description of each subsystem control model. For a complete presentation, one is referred to the indicated references.
 
 
-\subsubsection{Optical feedback loops}
+\subsubsection{NS wavefront control system}
 \label{sec:optics-ctrl}
 
-Fig.~\ref{fig:ns-ctrl} reproduces the Natural Seeing OPM control block diagram from the GMT Observatory Architecture Document~\cite{OAD}. That diagram adds extra details wavefront control (WFC) model, such as the interface of the controllers with the  Acquisition, Guiding and Wavefront Sensing (AGWS) unit and the commanded subsystems. The Natural Seeing algorithm description document~\cite{GMTO.NS.Alg.DOC} provides a complete presentation of the wavefront control algorithms.
+Fig.~\ref{fig:ns-ctrl} reproduces the Natural Seeing OPM control block diagram from the GMT Observatory Architecture Document~\cite{OAD}. That diagram adds extra details wavefront control model, such as the interface of the controllers with the  Acquisition, Guiding and Wavefront Sensing (AGWS) unit and the commanded subsystems. The Natural Seeing algorithm description document~\cite{GMTO.NS.Alg.DOC} presents the wavefront control algorithms in more detail. This subsection provides a brief description of the wavefront controllers incorporated into the integrated modeling (IM) framework. 
 \begin{figure}[!htb]
   \centering
   \includegraphics[width=0.7\linewidth]{ns-control.png}
@@ -414,17 +414,18 @@ The characterization plots for other segments and more details about the segment
 The active optics (AcO) control strategy can be split into two steps. % (Fig. ???). 
 First, there is an estimation (or reconstruction) step that aims at recovering the controllable modes (states) based on measurements of at least 3 AGWS probes in the WFS mode, such that each one provides the slopes from a Shack--Hartmann WFS with a $48 \times 48$ lenslet array. The controllable modes are the M1 and M2 rigid--body motions (RBMs), a subset of the M1 bending modes (BMs), and eventually global pointing errors projected onto azimuth (AZ), elevation (EL) and GIR axes. The active optics reconstruction is handled as an optimization problem based on four fundamental requirements: ({\it i}) wavefront error minimization, ({\it ii}) blind modes penalization --- piston error and outer--axis segment clocking, ({\it iii}) implementation of a load balance policy, and ({\it iv}) achieving an optimal solution within the admissible control set, that is, accounting for the actuator limits, which are imposed through inequality constraints. Second, a feedback integral compensator processes the reconstructed controllable modes and outputs correction commands to the M1 \& M2 segment position, the M1 shape and the mount orientation.
 
-
 %\paragraph{FSM offload controller --- Include ?}
 The FSM provides high bandwidth M2 segment $R_x$ and $R_y$ control with a limited range of motion, while the M2 Positioner provides lower bandwidth with a wider range of motion. The M2 Offload Loop (REQ--L3--OAD--34785~\cite{OAD}) aims at maximizing the available FSM stroke by maintaining the FSM actuators near the center of their range. The strategy described in~\cite[Section 6.4]{GMTO.NS.Alg.DOC} produces the FSM offloading signal by integrating the low--frequency trend of the segment tip--tilt corrections over a \SI{1}{s} time window. Such offloading contribution is summed to the AcO offset commands to the M2 positioned system.
+
+The Instrument Flexure Control Loop aims at correcting differential flexure between the instrument and the AGWS using image motion and focus error measured by the instrument Flexure Sensor. That controller is not considered in the current version of the NS OPM.
 
 \subsubsection{Mount controller}
 \label{sec:mount-ctrl}
 
 The mount structure shall follow a given trajectory that can be either slewing to a new science target in the sky or tracking a target. The controller ensures the mount stays on course while subject to various disturbances like the effects of gravity and wind buffeting. The mount controller generates compensation torque commands to the elevation, azimuth and Gregorian instrument rotator (GIR) drives axes to mitigate the tracking error computed based on the feedback signal of the mount axes encoders.  The mount control model also considers the drive actuators by representing their dynamics and some major nonlinear effects, such as quantization errors, friction, and parasitic torques.
 
-Each mount axis is controlled independently using a PID compensator and resonance (notch) filters to cope with structural resonant modes. A feedforward strategy is also envisioned to relieve the feedback compensator during critical acceleration/deceleration phases. As illustrated in the mount controller frequency responses of Fig.~\ref{fig:mount-ctrl}, the filter parameters assume different tunings depending on the telescope elevation angle. More details on the mount control model, including the structural dynamics behavior for different mount elevation angles, are reported in \cite[Section 3]{ODC_end2end_2021}.
-\begin{figure}
+Each mount axis is controlled independently using a PID compensator and resonance (notch) filters to cope with structural resonant modes. A feedforward strategy is also envisioned to relieve the feedback compensator during critical acceleration/deceleration phases. As illustrated in the mount controller frequency responses of Fig.~\ref{fig:mount-ctrl}, the filter parameters assume different tunings depending on the telescope elevation angle. %
+\begin{figure}[!htb]
   \centering
   \includegraphics[width=0.32\linewidth]{AZ_fbC_za.eps}
     \includegraphics[width=0.32\linewidth]{EL_fbC_za.eps}
@@ -432,6 +433,20 @@ Each mount axis is controlled independently using a PID compensator and resonanc
   \caption{Mount feedback controllers for different elevation angles.}
   \label{fig:mount-ctrl}
 \end{figure}
+%
+Fig.~\ref{fig:mount-cl-plots} shows the closed--loop (top) and sensitivity (bottom) frequency responses of each mount axis transfer function with the elevation structure at three different zenith angles. The considered structural damping is 2\%. %
+\begin{figure}[!htb]
+  \centering
+  \includegraphics[width=0.32\linewidth]{az_CL_plots.eps}
+    \includegraphics[width=0.32\linewidth]{el_CL_plots.eps}
+      \includegraphics[width=0.32\linewidth]{gir_CL_plots.eps}
+  \caption{Closed--loop and sensitivity frequency responses of the mount axes transfer functions.}
+  \label{fig:mount-cl-plots}
+\end{figure}
+%
+The OAD requirements REQ--L3--OAD--34824 and REQ--L3--OAD--34829 define a \SI{2.4}{Hz} closed--loop bandwidth for the azimuth and elevation axis, respectively. The red dashed lines indicate the envelope of complaint responses. The sensitivity plots include the rejection transfer function (RTF) limits REQ--L4--MNT--48987 stated in the Mount Requirement verification Methods~\cite[Section 5.6.1]{GMT.DOC.02011}. The results indicate that the OAD controller design achieves the required bandwidth. In addition, the obtained sensitivity transfer functions partially met RTF limits. Though the simulations suggest that the envelope violations at high--frequencies have not led to significant performance degradation, one should be aware of that issue. For convenience, the envelopes in the GIR plots (on the right) assume the same requirements as those used for the azimuth and elevation axes. The ODC GIR control design provides \SI{4.4}{Hz} bandwidth, significantly higher than the obtained for the other mount axes. The GIR loop disturbance rejection is also higher in the low--frequency range.
+
+More details on the mount control model, including the structural dynamics behavior for different mount elevation angles, are reported in \cite[Section 3]{ODC_end2end_2021}.
 
 
 \subsubsection{M1 subsystem local control}
